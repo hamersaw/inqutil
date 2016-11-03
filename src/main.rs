@@ -3,18 +3,19 @@ extern crate protobuf;
 extern crate rustc_serialize;
 
 mod pb;
+mod reader;
 
 use std::fs::File;
 
-use pb::proddle::ProbeResult;
+use reader::ProtobufReader;
 
 use docopt::Docopt;
-use protobuf::{CodedInputStream, Message};
 
 const USAGE: &'static str = "
 Application to parse probe result protobuf files
 
 Usage:
+    inqutil convert <filename> <output> 
     inqutil print <filename>
     inquitl (-h | --help)
 
@@ -24,6 +25,7 @@ Options:
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
+    cmd_convert: bool,
     cmd_print: bool,
     arg_filename: String,
 }
@@ -32,32 +34,25 @@ fn main() {
     let args: Args = Docopt::new(USAGE)
                         .and_then(|d| d.decode())
                         .unwrap_or_else(|e| e.exit());
+    if args.cmd_convert {
+        let mut file = match File::open(args.arg_filename) {
+            Ok(file) => file,
+            Err(e) => panic!("{}", e),
+        };
 
-    if args.cmd_print {
-        let mut file = File::open(args.arg_filename).unwrap();
+        let protobuf_reader = ProtobufReader::new(&mut file);
+        for probe_result in protobuf_reader {
+            //TODO 
+        }
+    } else if args.cmd_print {
+        let mut file = match File::open(args.arg_filename) {
+            Ok(file) => file,
+            Err(e) => panic!("{}", e),
+        };
 
-        let mut input_stream = CodedInputStream::new(&mut file);
-        loop {
-            //read length of protobuf message
-            let length = input_stream.read_uint32().unwrap();
-
-            //read bytes for messages
-            let mut bytes = Vec::new();
-            for _ in 0..length {
-                let byte = input_stream.read_raw_byte().unwrap();
-                bytes.push(byte);
-            }
-
-            //parse message
-            let mut message_input_stream = CodedInputStream::from_bytes(&bytes);
-            let mut probe_result = ProbeResult::new();
-            let _ = probe_result.merge_from(&mut message_input_stream);
+        let protobuf_reader = ProtobufReader::new(&mut file);
+        for probe_result in protobuf_reader {
             println!("probe_result: {:?}", probe_result);
-
-            //checck if end of file
-            if input_stream.eof().unwrap() {
-                break;
-            }
         }
     }
 }
