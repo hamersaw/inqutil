@@ -7,3 +7,4 @@ authors = ["Dan Rammer <hamersaw@bushpath.com>"]
 docopt = "0.6.*"
 protobuf = "1.*"
 rustc-serialize = "0.3.*"
+rusqlite = "0.7.*"

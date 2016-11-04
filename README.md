@@ -13,4 +13,4 @@ Note that you must have rust-protoc
 3. cargo build
 
 ##TODO
-- everything
+- write to sqlite
