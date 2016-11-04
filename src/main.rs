@@ -10,8 +10,8 @@ mod writer;
 use std::fs::File;
 use std::path::Path;
 
-use reader::ProtobufReader;
-use writer::Sqlite3Writer;
+use reader::{ProbeReader, ProbeResultReader};
+use writer::{Sqlite3Writer, Writer};
 
 use docopt::Docopt;
 
@@ -43,20 +43,25 @@ fn main() {
     let args: Args = Docopt::new(USAGE)
                         .and_then(|d| d.decode())
                         .unwrap_or_else(|e| e.exit());
+
     if args.cmd_print {
         let mut file = match File::open(args.arg_filename) {
             Ok(file) => file,
             Err(e) => panic!("{}", e),
         };
 
-        let protobuf_reader = if args.flag_result {
-            ProtobufReader::new(&mut file)
+        if args.flag_probe {
+            let probe_reader = ProbeReader::new(&mut file);
+            for probe in probe_reader {
+                println!("probe: {:?}", probe);
+            }
+        } else if args.flag_result {
+            let probe_result_reader = ProbeResultReader::new(&mut file);
+            for probe_result in probe_result_reader {
+                println!("probe_result: {:?}", probe_result);
+            }
         } else {
             panic!("no reader type found");
-        };
-
-        for protobuf in protobuf_reader {
-            println!("protobuf: {:?}", protobuf);
         }
     } else if args.cmd_write {
         //open connection to sqlite3 database
@@ -71,17 +76,23 @@ fn main() {
         };
 
         //open file for reading
-        if args.flag_result {
-            let mut file = match File::open(args.arg_filename) {
-                Ok(file) => file,
-                Err(e) => panic!("{}", e),
-            };
+        let mut file = match File::open(args.arg_filename) {
+            Ok(file) => file,
+            Err(e) => panic!("{}", e),
+        };
 
-            let protobuf_reader = ProtobufReader::new(&mut file);
-            for probe_result in protobuf_reader {
-                match writer.write_probe_result(probe_result) {
-                    Ok(_) => {},
-                    Err(e) => println!("{}", e),
+        if args.flag_probe {
+            let probe_reader = ProbeReader::new(&mut file);
+            for probe in probe_reader {
+                if let Err(e) = writer.write_probe(probe) {
+                    println!("{}", e);
+                }
+            }
+        } else if args.flag_result {
+            let probe_result_reader = ProbeResultReader::new(&mut file);
+            for probe_result in probe_result_reader {
+                if let Err(e) =  writer.write_probe_result(probe_result) {
+                    println!("{}", e);
                 }
             }
         } else {
