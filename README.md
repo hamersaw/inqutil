@@ -13,6 +13,4 @@ Note that you must have rust-protoc
 3. cargo build
 
 ##TODO
-- read probe protobuf file
-- write probe results other than http to sqlite3
-- write probes to sqlite3
+- handle probes and results other than http
