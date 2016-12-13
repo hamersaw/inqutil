@@ -81,46 +81,48 @@ impl Sqlite3Writer {
 }
 
 impl Writer for Sqlite3Writer {
-    fn write_probe(&self, probe: Probe) -> Result<(), Error> {
-        try!(self.conn.execute(
-            INSERT_HTTP_PROBES_STMT, &[
-                &(probe.get_probe_id() as i64),
-                &(probe.get_probe_interval_seconds() as i32),
-                &(probe.get_timeout_seconds() as i32),
-                &(probe.get_attempts_to_declare_failure() as i32),
-                &probe.get_domain(),
-                &(probe.get_port() as i32),
-                &probe.get_url_suffix(),
-                &probe.get_follow_redirect()
-            ]
-        ));
-
-        Ok(())
-    }
-
-    fn write_probe_result(&self, probe_result: ProbeResult) -> Result<(), Error> {
-        try!(self.conn.execute(
-            INSERT_HTTP_PROBE_RESULTS_STMT, &[
-                &(probe_result.get_probe_id() as i64),
-                &probe_result.get_prober_hostname(),
-                &(probe_result.get_timestamp_sec() as i64),
-                &probe_result.get_success(),
-                &probe_result.get_error_message(),
-                &(probe_result.get_application_layer_latency_nanosec() as i64),
-                &(probe_result.get_http_status_code() as i32),
-                &probe_result.get_http_status_message(),
-                &(probe_result.get_application_bytes_received() as i64),
-            ]
-        ));
-
-        Ok(())
-    }
-
-    fn close(self) -> Result<(), Error> {
-        if let Err(e) = self.conn.close() {
-            return Err(e);
+    fn write_probe(&self, probe: Probe) -> Result<(), String> {
+        match self.conn.execute(
+                INSERT_HTTP_PROBES_STMT, &[
+                    &(probe.get_probe_id() as i64),
+                    &(probe.get_probe_interval_seconds() as i32),
+                    &(probe.get_timeout_seconds() as i32),
+                    &(probe.get_attempts_to_declare_failure() as i32),
+                    &probe.get_domain(),
+                    &(probe.get_port() as i32),
+                    &probe.get_url_suffix(),
+                    &probe.get_follow_redirect()
+                ]
+            ) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(format!("{}", e)),
         }
+    }
 
+    fn write_probe_result(&self, probe_result: ProbeResult) -> Result<(), String> {
+        match self.conn.execute(
+                INSERT_HTTP_PROBE_RESULTS_STMT, &[
+                    &(probe_result.get_probe_id() as i64),
+                    &probe_result.get_prober_hostname(),
+                    &(probe_result.get_timestamp_sec() as i64),
+                    &probe_result.get_success(),
+                    &probe_result.get_error_message(),
+                    &(probe_result.get_application_layer_latency_nanosec() as i64),
+                    &(probe_result.get_http_status_code() as i32),
+                    &probe_result.get_http_status_message(),
+                    &(probe_result.get_application_bytes_received() as i64),
+                ]
+            ) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(format!("{}", e)),
+        }
+    }
+
+    fn close(&self) -> Result<(), String> {
+        /*match self.conn.close() {
+            Ok(_) => Ok(()),
+            Err(e) => Err(format!("{}", e)),
+        }*/
         Ok(())
     }
 }
