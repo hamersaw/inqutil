@@ -11,7 +11,8 @@ use std::fs::File;
 use std::path::Path;
 
 use reader::{ProbeReader, ProbeResultReader};
-use writer::{Sqlite3Writer, Writer};
+use writer::Writer;
+use writer::sqlite3::Sqlite3Writer;
 
 use docopt::Docopt;
 
@@ -97,6 +98,10 @@ fn main() {
             }
         } else {
             panic!("no reader type found");
+        }
+
+        if let Err(e) = writer.close() {
+            panic!("{}", e);
         }
     }
 }

@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use pb::proddle::{Probe, ProbeResult};
+use writer::Writer;
 
 use rusqlite::Error;
 use rusqlite::Connection;
@@ -57,11 +58,6 @@ INSERT INTO http_probe_results (
     application_bytes_received
 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
 
-pub trait Writer {
-    fn write_probe(&self, probe: Probe) -> Result<(), Error>;
-    fn write_probe_result(&self, probe_result: ProbeResult) -> Result<(), Error>;
-}
-
 pub struct Sqlite3Writer {
     conn: Connection,
 }
@@ -116,6 +112,14 @@ impl Writer for Sqlite3Writer {
                 &(probe_result.get_application_bytes_received() as i64),
             ]
         ));
+
+        Ok(())
+    }
+
+    fn close(self) -> Result<(), Error> {
+        if let Err(e) = self.conn.close() {
+            return Err(e);
+        }
 
         Ok(())
     }
