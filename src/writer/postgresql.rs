@@ -15,6 +15,10 @@ impl PostgresqlWriter {
 }
 
 impl Writer for PostgresqlWriter {
+    fn init(&self) -> Result<(), String> {
+        unimplemented!();
+    }
+
     fn write_probe(&self, probe: Probe) -> Result<(), String> {
         unimplemented!();
     }

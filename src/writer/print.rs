@@ -13,6 +13,10 @@ impl PrintWriter {
 }
 
 impl Writer for PrintWriter {
+    fn init(&self) -> Result<(), String> {
+        unimplemented!();
+    }
+
     fn write_probe(&self, probe: Probe) -> Result<(), String> {
         println!("probe: {:?}", probe);
         Ok(())

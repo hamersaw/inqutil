@@ -64,23 +64,27 @@ pub struct Sqlite3Writer {
 
 impl Sqlite3Writer {
     pub fn open(path: &Path) -> Result<Sqlite3Writer, Error> {
-        let create = !path.exists();
-        let conn = try!(Connection::open(path));
-
-        if create {
-            try!(conn.execute(CREATE_HTTP_PROBE_RESULTS_TABLE_STMT, &[]));
-            try!(conn.execute(CREATE_HTTP_PROBES_TABLE_STMT, &[]));
-        }
-
         Ok (
             Sqlite3Writer {
-                conn: conn,
+                conn: try!(Connection::open(path)),
             }
         )
     }
 }
 
 impl Writer for Sqlite3Writer {
+    fn init(&self) -> Result<(), String> {
+        if let Err(e) = self.conn.execute(CREATE_HTTP_PROBE_RESULTS_TABLE_STMT, &[]) {
+            return Err(format!("{}", e));
+        }
+
+        if let Err(e) = self.conn.execute(CREATE_HTTP_PROBES_TABLE_STMT, &[]) {
+            return Err(format!("{}", e));
+        }
+
+        Ok(())
+    }
+
     fn write_probe(&self, probe: Probe) -> Result<(), String> {
         match self.conn.execute(
                 INSERT_HTTP_PROBES_STMT, &[

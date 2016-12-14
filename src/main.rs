@@ -54,34 +54,37 @@ fn main() {
                         .and_then(|d| d.decode())
                         .unwrap_or_else(|e| e.exit());
 
-    if args.cmd_init {
-
-    } else if args.cmd_write {
-        //open writer
-        let writer: Box<Writer> = if args.flag_postgresql {
-            //open postgresql writer
-            let writer = match PostgresqlWriter::open() {
-                Ok(writer) => writer,
-                Err(e) => panic!("{}", e),
-            };
-
-            Box::new(writer) as Box<Writer>
-        } else if args.flag_stdout {
-            //open print writer
-            Box::new(PrintWriter::new()) as Box<Writer>
-        } else if args.flag_sqlite3 {
-            //open sqlite3 writer
-            let path = Path::new(&args.arg_db_filename);
-            let writer = match Sqlite3Writer::open(path) {
-                Ok(writer) => writer,
-                Err(e) => panic!("{}", e),
-            };
-
-            Box::new(writer) as Box<Writer>
-        } else {
-            panic!("unknown writer type");
+    //initialize writer
+    let writer: Box<Writer> = if args.flag_postgresql {
+        //open postgresql writer
+        let writer = match PostgresqlWriter::open() {
+            Ok(writer) => writer,
+            Err(e) => panic!("{}", e),
         };
 
+        Box::new(writer) as Box<Writer>
+    } else if args.flag_stdout {
+        //open print writer
+        Box::new(PrintWriter::new()) as Box<Writer>
+    } else if args.flag_sqlite3 {
+        //open sqlite3 writer
+        let path = Path::new(&args.arg_db_filename);
+        let writer = match Sqlite3Writer::open(path) {
+            Ok(writer) => writer,
+            Err(e) => panic!("{}", e),
+        };
+
+        Box::new(writer) as Box<Writer>
+    } else {
+        panic!("unknown writer type");
+    };
+
+    //perform operation
+    if args.cmd_init {
+        if let Err(e) = writer.init() {
+            panic!("{}", e);
+        }
+    } else if args.cmd_write {
         //open file for reading
         let mut file = match File::open(args.arg_filename) {
             Ok(file) => file,
@@ -104,10 +107,10 @@ fn main() {
                 }
             }
         }
+    }
 
-        //close writer
-        if let Err(e) = writer.close() {
-            panic!("{}", e);
-        }
+    //close writer
+    if let Err(e) = writer.close() {
+        panic!("{}", e);
     }
 }

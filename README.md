@@ -14,3 +14,4 @@ Note that you must have rust-protoc
 
 ##TODO
 - handle probes and results other than http
+- fix issue with closing sqlite3 writer
