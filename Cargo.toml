@@ -4,7 +4,8 @@ version = "0.1.0"
 authors = ["Dan Rammer <hamersaw@bushpath.com>"]
 
 [dependencies]
-docopt = "0.6.*"
-protobuf = "1.*"
-rustc-serialize = "0.3.*"
-rusqlite = "0.7.*"
+docopt = "0.6"
+postgres = "0.13"
+protobuf = "1"
+rustc-serialize = "0.3"
+rusqlite = "0.7"

@@ -1,4 +1,5 @@
 extern crate docopt;
+extern crate postgres;
 extern crate protobuf;
 extern crate rustc_serialize;
 extern crate rusqlite;
@@ -22,11 +23,13 @@ const USAGE: &'static str = "
 Application to parse probe result protobuf files
 
 Usage:
-    inqutil init (--postgresql <username> | --sqlite3 <db-filename>)
+    inqutil init (--postgresql <username> [--host=<host>] [--port=<port>] | --sqlite3 <db-filename>)
     inqutil write (--probe | --result) <filename> (--postgresql <username> | --stdout | --sqlite3 <db-filename>) 
     inqutil (-h | --help)
 
 Options:
+    --host=<host>           Host of postgresql service [default: 127.0.0.1].
+    --port=<port>           Port of postgresql service [default: 5432].
     --postgresql            Specify postgresql database as output.
     --probe                 Specify proddle probe file as input.
     --result                Specify proddle probe result file as input.
@@ -42,6 +45,8 @@ struct Args {
     arg_db_filename: String,
     arg_filename: String,
     arg_username: String,
+    flag_host: String,
+    flag_port: u32,
     flag_postgresql: bool,
     flag_probe: bool,
     flag_result: bool,
@@ -57,7 +62,7 @@ fn main() {
     //initialize writer
     let writer: Box<Writer> = if args.flag_postgresql {
         //open postgresql writer
-        let writer = match PostgresqlWriter::open() {
+        let writer = match PostgresqlWriter::open(&args.arg_username, &args.flag_host, args.flag_port) {
             Ok(writer) => writer,
             Err(e) => panic!("{}", e),
         };

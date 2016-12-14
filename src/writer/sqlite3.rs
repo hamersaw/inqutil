@@ -42,7 +42,7 @@ CREATE TABLE http_probe_results (
     http_status_code                    INT NULL,
     http_status_message                 TEXT NULL,
     application_bytes_received          INT NULL,
-    PRIMARY KEY(probe_id, timestamp_sec)
+    PRIMARY KEY(probe_id, prober_hostname, timestamp_sec)
 )";
 
 const INSERT_HTTP_PROBE_RESULTS_STMT: &'static str = "
@@ -127,6 +127,7 @@ impl Writer for Sqlite3Writer {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("{}", e)),
         }*/
-        Ok(())
+
+        unimplemented!();
     }
 }

@@ -1,5 +1,4 @@
 use writer::Writer;
-
 use pb::proddle::{Probe, ProbeResult};
 
 pub struct PrintWriter {
